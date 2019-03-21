@@ -420,10 +420,7 @@ def get_services(session, use_perf_data, raw_perf_data_names, use_command_labels
                     'hostname': s.host_name, 
                     'service': s.service_description, 
                     'command': canonical_command(s.check_command),
-                    'ack': s.acknowledged,
-                    'flapping' : s.is_flapping,
-                    'state': s.state,
-                    'group': s.host_groups[0]  # Just picking the first group might not be ideal... but test this out for now
+                    'ack': s.acknowledged
                     }
             cmd = "command"
         else:
@@ -432,7 +429,13 @@ def get_services(session, use_perf_data, raw_perf_data_names, use_command_labels
             cmd = canonical_command(s.check_command)
 
         lines.append(
-            format_metric('check_duration', labels, s.execution_time))
+            format_metric('check_state', labels, s.state))
+        
+        del labels['ack']
+        labels['state'] = s.state
+        lines.append(
+            format_metric('ack_count', labels, s.acknowledged))
+        
 
         # TODO: restructure of metric name might break below perf data stuff
         if use_perf_data and s.perf_data:
