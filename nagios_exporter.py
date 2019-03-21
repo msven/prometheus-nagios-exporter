@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 """nagios_exporter.py reports Nagios service status for Prometheus collection.
 
 The default mode for nagios_exporter.py is to start an HTTP server that
@@ -419,7 +419,7 @@ def get_services(session, use_perf_data, raw_perf_data_names, use_command_labels
             labels = {
                     'hostname': s.host_name, 
                     'service': s.service_description, 
-                    'command': s.check_command,
+                    'command': canonical_command(s.check_command),
                     'ack': s.acknowledged,
                     'flapping' : s.is_flapping,
                     'state': s.state,
@@ -432,7 +432,7 @@ def get_services(session, use_perf_data, raw_perf_data_names, use_command_labels
             cmd = canonical_command(s.check_command)
 
         lines.append(
-            format_metric('check_duration' % cmd, labels, s.execution_time))
+            format_metric('check_duration', labels, s.execution_time))
 
         # TODO: restructure of metric name might break below perf data stuff
         if use_perf_data and s.perf_data:
