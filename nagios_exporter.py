@@ -416,25 +416,25 @@ def get_services(session, use_perf_data, raw_perf_data_names, use_command_labels
     for s in services:
         if use_command_labels:
             # Standard labels, adding command as a label too.
-            labels = {'hostname': s.host_name, 'service': s.service_description, 'command': s.check_command}
+            labels = {
+                    'hostname': s.host_name, 
+                    'service': s.service_description, 
+                    'command': s.check_command,
+                    'ack': s.acknowledged,
+                    'flapping' : s.is_flapping,
+                    'state': s.state,
+                    'group': s.host_groups[0]  # Just picking the first group might not be ideal... but test this out for now
+                    }
             cmd = "command"
         else:
             # Standard labels, with the command in the metric name.
             labels = {'hostname': s.host_name, 'service': s.service_description}
             cmd = canonical_command(s.check_command)
 
-        # TODO: use a single histogram for all execution and latency times.
         lines.append(
-            format_metric('%s_exec_time' % cmd, labels, s.execution_time))
-        lines.append(
-            format_metric('%s_latency' % cmd, labels, s.latency))
-        lines.append(
-            format_metric('%s_state' % cmd, labels, s.state))
-        lines.append(
-            format_metric('%s_flapping' % cmd, labels, s.is_flapping))
-        lines.append(
-            format_metric('%s_acknowledged' % cmd, labels, s.acknowledged))
+            format_metric('check_duration' % cmd, labels, s.execution_time))
 
+        # TODO: restructure of metric name might break below perf data stuff
         if use_perf_data and s.perf_data:
             values = get_perf_data(
                 cmd, labels, s.perf_data.split(), raw_perf_data_names)
