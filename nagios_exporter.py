@@ -50,7 +50,7 @@ MAX_SOCKET_WAIT = 15
 COLUMNS = [
     'host_name', 'service_description', 'state', 'latency', 'perf_data',
     'process_performance_data', 'check_command', 'acknowledged',
-    'execution_time', 'is_flapping'
+    'execution_time', 'is_flapping', 'groups'
 ]
 
 # Maps known units to a scaling factor for converting Nagios performance data
@@ -412,6 +412,8 @@ def get_services(session, use_perf_data, raw_perf_data_names, use_command_labels
     query = 'GET services\nColumns: ' + ' '.join(COLUMNS)
     services = [Service(*s) for s in session.query(query)]
 
+    #group_re = re.compile('^(\w\w\w)-(\w\w\w)$')
+
     lines = []
     for s in services:
         if use_command_labels:
@@ -423,6 +425,12 @@ def get_services(session, use_perf_data, raw_perf_data_names, use_command_labels
                     'ack': s.acknowledged
                     }
             cmd = "command"
+            
+            groups = s.groups
+            if ( len(groups) > 0 ):
+                labels['servicegroup'] = groups[0]
+                
+            
         else:
             # Standard labels, with the command in the metric name.
             labels = {'hostname': s.host_name, 'service': s.service_description}
